@@ -2,76 +2,118 @@ const Engine = Matter.Engine;
 const World = Matter.World;
 const Bodies = Matter.Bodies;
 const Constraint = Matter.Constraint;
-var engine, world, backgroundImg;
-var canvas, angle, tower, ground, cannon;
-var balls = [];
 
+var engine, world;
+var canvas;
+var palyer, playerBase;
+var computer, computerBase;
 
-function preload() {
-  backgroundImg = loadImage("./assets/background.gif");
-  towerImage = loadImage("./assets/tower.png");
-  
-}
+//Declare an array for arrows playerArrows = [ ]
+var playerArrows = [];
+
+var arrow;
+
 
 function setup() {
-  canvas = createCanvas(1200,600);
+  canvas = createCanvas(windowWidth, windowHeight);
+
   engine = Engine.create();
   world = engine.world;
-  angle = -PI / 4;
-  ground = new Ground(0, height - 1, width * 2, 1);
-  tower = new Tower(150, 350, 160, 310);
-  cannon = new Cannon(180, 110, 100, 50, angle);
-//create a boat object
-  boat = new Boat(width,height-100,200,200,-100)
-  
 
+  playerBase = new PlayerBase(300, random(450, height - 300), 180, 150);
+  player = new Player(285, playerBase.body.position.y - 153, 50, 180);
+  playerArcher = new PlayerArcher(
+    340,
+    playerBase.body.position.y - 180,
+    120,
+    120
+  );
+
+  computerBase = new ComputerBase(
+    width - 300,
+    random(450, height - 300),
+    180,
+    150
+  );
+  computer = new Computer(
+    width - 280,
+    computerBase.body.position.y - 153,
+    50,
+    180
+  );
+  computerArcher = new ComputerArcher(
+    width - 340,
+    computerBase.body.position.y - 180,
+    120,
+    120
+  );
   
+ 
+
+
 }
 
 function draw() {
-  background(189);
-  image(backgroundImg, 0, 0, width, height);
-
- 
+  background(180);
 
   Engine.update(engine);
-  ground.display();
+
+  // Title
+  fill("#FFFF");
+  textAlign("center");
+  textSize(40);
+  text("EPIC ARCHERY", width / 2, 100);
 
  
-
-  for (var i = 0; i < balls.length; i++) {
-    showCannonBalls(balls[i], i);
-  }
-//display the boat
-  cannon.display();
-  tower.display();
-  Matter.Body.setVelocity(boat.body,{x:-1,y:0})
-  boat.display();
+  playerBase.display();
+  player.display();
   
+
+  computerBase.display();
+  computer.display();
+  
+  playerArcher.display();
+  computerArcher.display()
+
+ // Uncomment and use correct for loop to display arrow using showArrow() function
+ for (var i=0; i<playerArrows.length; i++) 
+ {
+ showArrows(i, playerArrows);
+ }
+
 }
+
+
 
 function keyPressed() {
-  if (keyCode === DOWN_ARROW) {
-    var cannonBall = new CannonBall(cannon.x, cannon.y);
-    balls.push(cannonBall);
+  if(keyCode === 32){
+    // create an arrow object and add into an array ; set its angle same as angle of playerArcher
+    var posX = playerArcher.body.position.x;
+    var posY = playerArcher.body.position.y;
+    var angle = playerArcher.body.angle+PI/2;
+    var arrow = new PlayerArrow(posX, posY, 100, 10);
+    arrow.trajectory = [];
+    Matter.Body.setAngle(arrow.body, angle);
+    playerArrows.push(arrow);
   }
 }
 
-//function to show the ball
-function showCannonBalls(ball, index) {
-  ball.display();
-  if (ball.body.position.x >= width || ball.body.position.y >= height - 50) {
-    Matter.World.remove(world, ball.body);
-    balls.splice(index, 1);
+function keyReleased () {
+
+  if(keyCode === 32){
+    //call shoot() function for each arrow in an array playerArrows
+    if (playerArrows.length) {
+      var angle = playerArcher.body.angle+PI/2;
+      playerArrows[playerArrows.length - 1].shoot(angle);
+    }
   }
+
 }
+//Display arrow and Tranjectory
+function showArrows(index, arrows) {
+  arrows[index].display();
+    
+  
+ 
 
-
-
-function keyReleased() {
-  if (keyCode === DOWN_ARROW) { 
-    balls[balls.length - 1].shoot();
-  }
 }
-
-
